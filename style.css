@@ -248,9 +248,4 @@ body {
     right: 16px;
 }
 
-/* Hide ads on smaller screens */
-@media (max-width: 1200px) {
-    .ad-container {
-        display: none;
-    }
-}
+
