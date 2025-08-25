@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카레이싱 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="score-board">점수: <span id="score">0</span></div>
+    <div class="game-container">
+        <div id="game-area"></div>
+    </div>
+    <div class="controls">
+        <p>조작법: ← → 이동</p>
+    </div>
+    <div id="start-screen" class="screen">
+        <div class="content">
+            <h1>카레이싱 게임</h1>
+            <button id="start-button">게임 시작</button>
+        </div>
+    </div>
+    <div id="game-over-screen" class="screen" style="display: none;">
+        <div class="content">
+            <h1>게임 종료</h1>
+            <p>최종 점수: <span id="final-score">0</span></p>
+            <h3>TOP 3</h3>
+            <ol id="top-scores-list">
+            </ol>
+            <button id="restart-button">다시 시작</button>
+        </div>
+    </div>
+
+    <!-- Kakao Ad Left -->
+    <div class="ad-container left-ad">
+        <ins class="kakao_ad_area"
+             style="display: block; width: 160px; height: 600px;"
+             data-ad-unit=""
+             data-ad-width="160"
+             data-ad-height="600"></ins>
+    </div>
+
+    <!-- Kakao Ad Right -->
+    <div class="ad-container right-ad">
+        <ins class="kakao_ad_area"
+             style="display: block; width: 160px; height: 600px;"
+             data-ad-unit=""
+             data-ad-width="160"
+             data-ad-height="600"></ins>
+    </div>
+
+    <script src="script.js"></script>
+    <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+</body>
+</html>
