@@ -192,7 +192,7 @@ body {
     top: 30px;
     width: 160px;
     height: 600px;
-    z-index: 0; /* Place ads behind the game container */
+    z-index: 21; /* Place ads on top of everything */
 }
 
 .left-ad {
