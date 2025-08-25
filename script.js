@@ -13,13 +13,16 @@ let player = {
     speed: 5,
     score: 0,
     start: false,
-    gameOver: false
+    gameOver: false,
+    shielded: false
 };
 
 let keys = {
     ArrowLeft: false,
     ArrowRight: false
 };
+
+let powerUps = [];
 
 // --- TOP 3 Score Logic ---
 let topScores = JSON.parse(localStorage.getItem('carRaceTopScores')) || [];
@@ -39,19 +42,13 @@ function checkAndResetScores() {
 }
 
 function updateTopScoresDisplay() {
-    topScoresList.innerHTML = ''; // Clear previous list
+    topScoresList.innerHTML = '';
     if (topScores.length === 0) {
-        for(let i=0; i<3; i++) {
-            const li = document.createElement('li');
-            li.textContent = `${i + 1}위: -`;
-            topScoresList.appendChild(li);
-        }
+        for(let i=0; i<3; i++) { topScoresList.innerHTML += `<li>${i + 1}위: -</li>`; }
     } else {
         for (let i = 0; i < 3; i++) {
-            const li = document.createElement('li');
             const score = topScores[i] ? `${topScores[i]}점` : '-';
-            li.textContent = `${i + 1}위: ${score}`;
-            topScoresList.appendChild(li);
+            topScoresList.innerHTML += `<li>${i + 1}위: ${score}</li>`;
         }
     }
 }
@@ -69,52 +66,36 @@ function createPlayer() {
 let playerCarElement;
 
 function handleKeyDown(e) {
-    e.preventDefault();
+    if (player.start && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+    }
     keys[e.key] = true;
 }
 
 function handleKeyUp(e) {
-    e.preventDefault();
+    if (player.start && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+    }
     keys[e.key] = false;
 }
 
 function isCollide(a, b) {
     let aRect = a.getBoundingClientRect();
     let bRect = b.getBoundingClientRect();
-
     const shrinkFactor = 0.3;
     const aHorizontalPadding = aRect.width * (shrinkFactor / 2);
     const aVerticalPadding = aRect.height * (shrinkFactor / 2);
     const bHorizontalPadding = bRect.width * (shrinkFactor / 2);
     const bVerticalPadding = bRect.height * (shrinkFactor / 2);
-
-    const aHitbox = {
-        left: aRect.left + aHorizontalPadding,
-        right: aRect.right - aHorizontalPadding,
-        top: aRect.top + aVerticalPadding,
-        bottom: aRect.bottom - aVerticalPadding
-    };
-    const bHitbox = {
-        left: bRect.left + bHorizontalPadding,
-        right: bRect.right - bHorizontalPadding,
-        top: bRect.top + bVerticalPadding,
-        bottom: bRect.bottom - bVerticalPadding
-    };
-
-    return !(
-        (aHitbox.bottom < bHitbox.top) ||
-        (aHitbox.top > bHitbox.bottom) ||
-        (aHitbox.right < bHitbox.left) ||
-        (aHitbox.left > bHitbox.right)
-    );
+    const aHitbox = { left: aRect.left + aHorizontalPadding, right: aRect.right - aHorizontalPadding, top: aRect.top + aVerticalPadding, bottom: aRect.bottom - aVerticalPadding };
+    const bHitbox = { left: bRect.left + bHorizontalPadding, right: bRect.right - bHorizontalPadding, top: bRect.top + bVerticalPadding, bottom: bRect.bottom - bVerticalPadding };
+    return !((aHitbox.bottom < bHitbox.top) || (aHitbox.top > bHitbox.bottom) || (aHitbox.right < bHitbox.left) || (aHitbox.left > bHitbox.right));
 }
 
 function moveLines() {
     let lines = document.querySelectorAll('.line');
     lines.forEach(function(item) {
-        if (item.y >= 750) { // New height
-            item.y -= 900; // 6 lines * 150px spacing
-        }
+        if (item.y >= 750) { item.y -= 900; }
         item.y += player.speed;
         item.style.top = item.y + 'px';
     });
@@ -123,14 +104,10 @@ function moveLines() {
 function endGame() {
     player.start = false;
     player.gameOver = true;
-
-    // Update and save scores
     topScores.push(player.score);
     topScores.sort((a, b) => b - a);
     topScores = topScores.slice(0, 3);
     localStorage.setItem('carRaceTopScores', JSON.stringify(topScores));
-
-    // Display scores
     finalScoreDisplay.innerText = player.score;
     updateTopScoresDisplay();
     gameOverScreen.style.display = 'flex';
@@ -142,13 +119,10 @@ function randomizeEnemy(enemy) {
     enemy.style.width = randomWidth + 'px';
     enemy.style.height = randomHeight + 'px';
     enemy.style.backgroundColor = randomColor();
-
     const oldWheels = enemy.querySelectorAll('.wheel');
     oldWheels.forEach(w => w.remove());
-
     const wheelWidth = Math.round(randomWidth * 0.18);
     const wheelHeight = Math.round(randomHeight * 0.25);
-
     for (let i = 0; i < 4; i++) {
         const wheel = document.createElement('span');
         wheel.setAttribute('class', 'wheel');
@@ -166,19 +140,23 @@ function moveEnemies(car) {
     let enemies = document.querySelectorAll('.enemy');
     enemies.forEach(function(item) {
         if (isCollide(car, item)) {
-            endGame();
+            if (player.shielded) {
+                player.shielded = false;
+                car.classList.remove('shield-active');
+                randomizeEnemy(item);
+                item.y = -300;
+            } else {
+                endGame();
+            }
         }
-
-        if (item.y >= 800) { // New height + buffer
+        if (item.y >= 800) {
             item.y = -300;
-            item.style.left = Math.floor(Math.random() * 365) + 'px'; // New width - max car width
+            item.style.left = Math.floor(Math.random() * 365) + 'px';
             player.score++;
             scoreDisplay.innerText = player.score;
             randomizeEnemy(item);
             if (player.score > 0 && player.score % 5 === 0) {
-                if (player.speed < 15) {
-                    player.speed += 0.5;
-                }
+                if (player.speed < 15) { player.speed += 0.5; }
             }
         }
         item.y += player.speed;
@@ -186,28 +164,63 @@ function moveEnemies(car) {
     });
 }
 
+function spawnPowerUp() {
+    const powerUp = document.createElement('div');
+    powerUp.setAttribute('class', 'power-up');
+    powerUp.innerHTML = 'S'; // Shield
+    powerUp.y = -100;
+    powerUp.style.top = powerUp.y + 'px';
+    powerUp.style.left = Math.floor(Math.random() * 390) + 'px';
+    gameArea.appendChild(powerUp);
+    powerUps.push(powerUp);
+}
+
+function updatePowerUps(car) {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        let item = powerUps[i];
+        item.y += player.speed / 2; // Move slower than enemies
+        if (item.y > 750) {
+            item.remove();
+            powerUps.splice(i, 1);
+        } else {
+            if (isCollide(car, item)) {
+                player.shielded = true;
+                car.classList.add('shield-active');
+                item.remove();
+                powerUps.splice(i, 1);
+            }
+            item.style.top = item.y + 'px';
+        }
+    }
+}
+
 function gamePlay() {
     if (player.start) {
         let car = document.querySelector('.car');
-        let road = gameArea.getBoundingClientRect();
         moveLines();
         moveEnemies(car);
+        updatePowerUps(car);
+        if (Math.random() < 0.002 && powerUps.length === 0 && !player.shielded) { // Spawn shield condition
+            spawnPowerUp();
+        }
         if (keys.ArrowLeft && player.x > 0) { player.x -= player.speed; }
-        if (keys.ArrowRight && player.x < (road.width - 75)) { player.x += player.speed; }
+        if (keys.ArrowRight && player.x < (gameArea.offsetWidth - 75)) { player.x += player.speed; }
         car.style.left = player.x + 'px';
         window.requestAnimationFrame(gamePlay);
     }
 }
 
 function startGame() {
-    clearTimeout(inactivityTimer); // Clear the auto-start timer
+    clearTimeout(inactivityTimer);
     startScreen.style.display = 'none';
     gameOverScreen.style.display = 'none';
     gameArea.innerHTML = '';
+    powerUps = [];
     player.start = true;
     player.gameOver = false;
     player.score = 0;
     player.speed = 5;
+    player.shielded = false;
     scoreDisplay.innerText = player.score;
     playerCarElement = createPlayer();
     for (let x = 0; x < 6; x++) {
@@ -230,17 +243,13 @@ function startGame() {
 }
 
 function randomColor(){
-    function c(){
-        let hex = Math.floor(Math.random()*256).toString(16);
-        return ("0" + String(hex)).substr(-2);
-    }
+    function c(){ let hex = Math.floor(Math.random()*256).toString(16); return ("0" + String(hex)).substr(-2); }
     return "#"+c()+c()+c();
 }
 
 // Initial setup
 checkAndResetScores();
-inactivityTimer = setTimeout(startGame, 2000); // Auto-start after 2 seconds
-
+inactivityTimer = setTimeout(startGame, 2000);
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
 startButton.addEventListener('click', startGame);
