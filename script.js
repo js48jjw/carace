@@ -7,6 +7,8 @@ const restartButton = document.getElementById('restart-button');
 const finalScoreDisplay = document.getElementById('final-score');
 const topScoresList = document.getElementById('top-scores-list');
 
+let inactivityTimer = null;
+
 let player = {
     speed: 5,
     score: 0,
@@ -198,6 +200,7 @@ function gamePlay() {
 }
 
 function startGame() {
+    clearTimeout(inactivityTimer); // Clear the auto-start timer
     startScreen.style.display = 'none';
     gameOverScreen.style.display = 'none';
     gameArea.innerHTML = '';
@@ -236,6 +239,8 @@ function randomColor(){
 
 // Initial setup
 checkAndResetScores();
+inactivityTimer = setTimeout(startGame, 2000); // Auto-start after 2 seconds
+
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
 startButton.addEventListener('click', startGame);
