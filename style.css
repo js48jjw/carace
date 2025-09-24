@@ -248,4 +248,39 @@ body {
     right: 16px;
 }
 
+/* Promotion banner styles */
+.promo-banner {
+    position: fixed;
+    width: 160px;
+    z-index: 22; /* Place above ads */
+}
+
+.left-promo {
+    left: 10px;
+    top: 650px; /* Position below left kakao ad (30px + 600px + 20px margin) */
+}
+
+.right-promo {
+    right: 16px;
+    top: 650px; /* Position below right kakao ad (30px + 600px + 20px margin) */
+}
+
+.promo-banner a {
+    display: block;
+    text-decoration: none;
+}
+
+.promo-banner img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.promo-banner img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
 
